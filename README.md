@@ -1,2 +1,2 @@
-# ITaNS
-Internet Technologies and Network Software
+# ITaNS 
+## Работы выполняет студент Попов Вадим Александрович ИКС-433
