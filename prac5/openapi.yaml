@@ -1,0 +1,232 @@
+openapi: 3.0.4
+info:
+  title: API обработки данных книг
+  description: Сервис для работы со списком данных о книгах.
+  version: 1.0.0
+
+tags:
+  - name: Books
+
+paths:
+  /books:
+    get:
+      tags:
+        - Books
+      summary: Получить список всех книг
+      description: |
+        Возвращает массив всех книг. Позволяет фильтровать по автору через query.
+        
+        **Если параметр не указан то возвращает полный список книг**,
+        **Если параметр указан то фильтрует по автору**
+      parameters:
+        - name: author
+          in: query
+          description: Фильтр по автору
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            example: "Л. Н. Толстой"
+      responses:
+        '200':
+          description: Успешный ответ со списком книг
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+        '422':
+          description: Ошибка валидации параметров
+
+    post:
+      tags:
+        - Books
+      summary: Добавить новую книгу
+      description: |
+        Создает новую запись о книге.
+        
+        **ID генерируется на основе максимального существующего ID + 1**,
+        **Возвращает созданную книгу с присвоенным ID**
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+            example:
+              title: "Новая книга"
+              author: "Новый автор"
+              publication_year: 2025
+      responses:
+        '201':
+          description: Книга успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+              example:
+                id: 5
+                title: "Новая книга"
+                author: "Новый автор"
+                publication_year: 2025
+        '422':
+          description: Ошибка валидации данных
+
+  /books/{book_id}:
+    get:
+      tags:
+        - Books
+      summary: Получить книгу по ID
+      description: |
+        Возвращает информацию о книге по ID.
+        
+        **Возвращает объект книги, если она найдена**,
+        **Возвращает ошибку 404, если книга с таким ID отсутствует**
+      parameters:
+        - name: book_id
+          in: path
+          description: ID книги для получения
+          required: true
+          schema:
+            type: integer
+            example: 1
+            minimum: 1
+      responses:
+        '200':
+          description: Успешный ответ с данными книги
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+              example:
+                id: 1
+                title: "Война и мир"
+                author: "Л. Н. Толстой"
+                publication_year: 1867
+        '404':
+          description: Книга не найдена
+        '422':
+          description: Ошибка валидации параметров
+
+    delete:
+      tags:
+        - Books
+      summary: Удалить книгу по ID
+      description: |
+        Удаляет книгу из библиотеки по её уникальному идентификатору.
+        
+        **Удаляет книгу с указанным ID из списка**,
+        **Возвращает обновленный список книг после удаления**,
+        **Возвращает ошибку 404, если книга с указанным ID не найдена**
+      parameters:
+        - name: book_id
+          in: path
+          description: ID книги для удаления
+          required: true
+          schema:
+            type: integer
+            example: 1
+            minimum: 1
+      responses:
+        '200':
+          description: Книга успешно удалена, возвращает обновленный список книг
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+              example:
+                - id: 2
+                  title: "Мастер и Маргарита"
+                  author: "М. А. Булгаков"
+                  publication_year: 1967
+                - id: 3
+                  title: "Маленький принц"
+                  author: "Антуана де Сент-Экзюпери"
+                  publication_year: 1943
+        '404':
+          description: Книга не найдена
+        '422':
+          description: Ошибка валидации параметров
+
+    put:
+      tags:
+        - Books
+      summary: Обновить книгу по ID
+      description: |
+        Полностью обновляет информацию о книге по её уникальному идентификатору.
+        
+        **Обновляет все поля книги с указанным ID**,
+        **Требует полного объекта книги в запросе**,
+        **Возвращает обновленную книгу**,
+        **Возвращает ошибку 404, если книга с указанным ID не найдена**
+      parameters:
+        - name: book_id
+          in: path
+          description: ID книги для обновления
+          required: true
+          schema:
+            type: integer
+            example: 1
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+            example:
+              title: "Обновленное название"
+              author: "Обновленный автор"
+              publication_year: 2024
+      responses:
+        '200':
+          description: Книга успешно обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+              example:
+                id: 1
+                title: "Обновленное название"
+                author: "Обновленный автор"
+                publication_year: 2024
+        '404':
+          description: Книга не найдена
+        '422':
+          description: Ошибка валидации данных
+
+components:
+  schemas:
+    Book:
+      type: object
+      required:
+        - id
+        - title
+        - author
+        - publication_year
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор книги
+          example: 1
+          minimum: 1
+        title:
+          type: string
+          description: Название книги
+          example: "Преступление и наказание"
+        author:
+          type: string
+          description: Автор книги
+          example: "Ф. М. Достоевский"
+        publication_year:
+          type: integer
+          description: Год публикации книги
+          example: 1866
+      example:
+        id: 1
+        title: "Война и мир"
+        author: "Л. Н. Толстой"
+        publication_year: 1867
